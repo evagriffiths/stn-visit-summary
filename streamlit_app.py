@@ -1,5 +1,5 @@
 import streamlit as st
 
-st.write('Hello!')
+st.write('here we are')
 
-st.write(st.secrets["secret_test"])
+st.write(st.secrets["theSecret"])
