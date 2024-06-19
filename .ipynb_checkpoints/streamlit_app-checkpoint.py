@@ -10,15 +10,9 @@ from google.oauth2.service_account import Credentials
 
 1. Please allow a moment for the database to load.
 2. Select desired station and number of recent trip reports to be included.
-3. Click "Get pretrip report" button.
+3. Click "Get Pretrip Report" button.
 4. A download button will appear - click this to download pretrip report.
 '''
-
-
-
-
-
-
 
 # read google sheet on app launch so that station names dropdown menu can be auto-populated
 # build credentials from secrets
@@ -34,7 +28,7 @@ credentials = {
 
 # connect to google sheets
 gc = gspread.service_account_from_dict(credentials)
-sh = gc.open("Weather Station Visit UPDATED")
+sh = gc.open("Weather Station Visit CSV_UPLOAD")
 
 # pull wx station visit sheet and put in dataframe
 worksheet = sh.sheet1;
@@ -90,16 +84,16 @@ if st.button('Get Pretrip Report'):
         df_table[df_table == 'no'] = ' '
         df_table[df_table == 'yes'] = 'Y'
 
+
         # convert to html file
-        df_table.to_html(open(station.replace(" ", "") + '_pretrip_example.html', 'w', encoding="utf-8"), index=False)
+        filestr = station.replace(" ", "").replace("-", "") + '_pretrip_' + date.today().strftime("%d %b %Y").replace(" ", "") + '.html'
+        df_table.to_html(open(filestr, 'w', encoding="utf-8"), index=False)
         
         # download on button click
-        with open(station.replace(" ", "") + '_pretrip_example.html', "r") as file:
+        with open(filestr) as file:
             btn = st.download_button(
                 label='Click to download pretrip report',
                 data=file,
-                file_name=station.replace(" ", "") + '_pretrip_' + date.today().strftime("%d %b %Y").replace(" ", "") + '.html',
+                file_name=filestr,
                 mime="text/html"
               )
-
-            

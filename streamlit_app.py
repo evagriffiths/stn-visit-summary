@@ -28,7 +28,7 @@ credentials = {
 
 # connect to google sheets
 gc = gspread.service_account_from_dict(credentials)
-sh = gc.open("Weather Station Visit UPDATED")
+sh = gc.open("Weather Station Visit CSV_UPLOAD")
 
 # pull wx station visit sheet and put in dataframe
 worksheet = sh.sheet1;
@@ -72,7 +72,8 @@ if st.button('Get Pretrip Report'):
                'Sensor Change : Why is the sensor being changed',
                'Sensor Change : Additional Notes',
                'General Notes']
-        new_colnames = ['date', 'users', 'snow_course', 'drone', 'CF', 'sens_change', 'p_gage', 'lys_cal', 'buck_cal', 'data', 'gen_maint', 'sens_changed','reason', 'sens_notes', 'general_notes'] # GS
+        new_colnames = ['date', 'users', 'snow_course', 'drone', 'CF', 'sens_change', 'p_gage', 'lys_cal', 'buck_cal', 'data', 'gen_maint', 'sens_changed','reason', 'sens_notes', 'general_notes']
+        
         # get selected columns
         df_station = df_station[cols2keep].set_axis(new_colnames, axis='columns')
 
@@ -84,14 +85,16 @@ if st.button('Get Pretrip Report'):
         df_table[df_table == 'no'] = ' '
         df_table[df_table == 'yes'] = 'Y'
 
+
         # convert to html file
-        df_table.to_html(open(station.replace(" ", "") + '_pretrip_example.html', 'w', encoding="utf-8"), index=False)
+        filestr = station.replace(" ", "").replace("-", "") + '_pretrip_' + date.today().strftime("%d %b %Y").replace(" ", "") + '.html'
+        df_table.to_html(open(filestr, 'w', encoding="utf-8"), index=False)
         
         # download on button click
-        with open(station.replace(" ", "") + '_pretrip_example.html', "r") as file:
+        with open(filestr) as file:
             btn = st.download_button(
                 label='Click to download pretrip report',
                 data=file,
-                file_name=station.replace(" ", "") + '_pretrip_' + date.today().strftime("%d %b %Y").replace(" ", "") + '.html',
+                file_name=filestr,
                 mime="text/html"
               )
