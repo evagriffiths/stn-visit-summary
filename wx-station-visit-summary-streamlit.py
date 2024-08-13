@@ -14,12 +14,12 @@ st.set_page_config(
 )
 
 '''
-# CHRL Wx Station Pretrip Report
+# CHRL Wx Station Visit Summary
 
 1. Please allow a moment for the database to load.
 2. Select desired station and number of recent trip reports to be included.
-3. Click "Get Pretrip Report" button.
-4. A download button will appear - click this to download pretrip report.
+3. Click "Get Summary Table" button.
+4. Click "Download Summary Table" button if you would like to download a copy.
 '''
 
 ## READ GOOGLE SHEET ON APP LAUNCH SO THAT STATION NAMES DROPDOWN MENU CAN BE POPULATED
@@ -58,7 +58,7 @@ num_entries = st.number_input('Select number of recent entries to include', valu
 # img_flag = st.checkbox('Display images on page (will increase processing time)')
 
 ## MAIN SCRIPT
-if st.button('Get Pretrip Report'):
+if st.button('Get Summary Table'):
 #     check inputs
     if station is None:
         st.write(':red[Please select a station.]')
@@ -131,6 +131,11 @@ if st.button('Get Pretrip Report'):
             # update the df with the formatted strings
             df_table.loc[df_table['date'] == dt, 'photo'] = html_links
 
+        # format other fields for html
+        df_table['general_notes'] = df_table['general_notes'].str.replace('\n', '<br>', regex=False)
+        df_table['sens_notes'] = df_table['sens_notes'].str.replace('\n', '<br>', regex=False)
+
+
         # now that each entry has links for all photos, drop the duplicates
         df_table = df_table.drop_duplicates(subset='date')
 
@@ -145,14 +150,14 @@ if st.button('Get Pretrip Report'):
         # download on button click
         with open(filestr, 'r+', encoding="utf-8") as file:
             btn = st.download_button(
-                label='Click to download pretrip report table',
+                label='Download Summary Table',
                 data=file,
                 file_name=filestr,
                 mime="text/html"
               )
 
-    # print html table to app page
-    components.html(df_table.to_html(index=False, escape=False, justify='left'), height=3000)
+        # print html table to app page
+        components.html(df_table.to_html(index=False, escape=False, justify='left'), height=3000)
 
     # # display photos on app page if requested
     # if img_flag:
