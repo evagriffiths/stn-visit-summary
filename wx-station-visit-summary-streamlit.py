@@ -6,8 +6,30 @@ import gspread
 from google.oauth2.service_account import Credentials
 import streamlit.components.v1 as components
 import gdown
+import tornado.web
+import tornado.ioloop
+import threading
 
-import re
+# Define the Healthcheck Handler
+class HealthCheckHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("Healthcheck: OK")
+
+# Define the Tornado Application
+def make_app():
+    return tornado.web.Application([
+        (r"/healthcheck", HealthCheckHandler),
+    ])
+
+# Start the Tornado server in a separate thread
+def start_tornado_server():
+    app = make_app()
+    app.listen(8888)  # Port for the healthcheck endpoint
+    tornado.ioloop.IOLoop.current().start()
+
+# Start the Tornado server thread
+tornado_thread = threading.Thread(target=start_tornado_server)
+tornado_thread.start()
 
 st.set_page_config(
     layout="wide"
@@ -159,24 +181,7 @@ if st.button('Get Summary Table'):
         # print html table to app page
         components.html(df_table.to_html(index=False, escape=False, justify='left'), height=3000)
 
-    # # display photos on app page if requested
+    # # display photos on page (optional)
     # if img_flag:
-    #         c = 0
-    #         for index, row in df_pic.iterrows():
-    #             if row['photo'] != '':
-    #                 c = c + 1
-    #                 url = row['photo']
-    #                 output = 'img.png'
-    #                 gdown.download(url=url, output=output, quiet=False, fuzzy=True)
-    #                 cap = row['date'] + ': ' + row['photo_note']
-    #                 if c == 1:
-    #                     col1, col2, col3 = st.columns([0.33, 0.33, 0.33], gap='small', vertical_alignment="bottom")
-    #                     with col1:
-    #                         st.image('img.png', width=300, caption=cap)
-    #                 elif c == 2:
-    #                     with col2:
-    #                         st.image('img.png', width=300, caption=cap)
-    #                 elif c == 3:
-    #                     with col3:
-    #                         st.image('img.png', width=300, caption=cap)
-    #                     c = 0
+    #     st.write(df_pic[['date', 'photo', 'photo_note']].to_html(index=False, escape=False, justify='left'), unsafe_allow_html=True)
+
