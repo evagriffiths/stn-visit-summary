@@ -5,31 +5,6 @@ from datetime import date
 import gspread
 from google.oauth2.service_account import Credentials
 import streamlit.components.v1 as components
-import gdown
-import tornado.web
-import tornado.ioloop
-import threading
-
-# Define the Healthcheck Handler
-class HealthCheckHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.write("Healthcheck: OK")
-
-# Define the Tornado Application
-def make_app():
-    return tornado.web.Application([
-        (r"/healthcheck", HealthCheckHandler),
-    ])
-
-# Start the Tornado server in a separate thread
-def start_tornado_server():
-    app = make_app()
-    app.listen(8888)  # Port for the healthcheck endpoint
-    tornado.ioloop.IOLoop.current().start()
-
-# Start the Tornado server thread
-tornado_thread = threading.Thread(target=start_tornado_server)
-tornado_thread.start()
 
 st.set_page_config(
     layout="wide"
@@ -39,6 +14,7 @@ st.set_page_config(
 # CHRL Wx Station Visit Summary
 
 1. Please allow a moment for the database to load.
+2. The database updates every 24 hrs, but you can also trigger an update with the "Update Visit Form Database" button.
 2. Select desired station and number of recent trip reports to be included.
 3. Click "Get Summary Table" button.
 4. Click "Download Summary Table" button if you would like to download a copy.
@@ -64,9 +40,6 @@ sh = gc.open("Weather Station Visit Form Test")
 worksheet = sh.worksheet('Weather Station Visit MERGED')
 df = pd.DataFrame(worksheet.get_all_records())
 
-# # columns to search for station names
-# station_cols = ['Central Coast Stations','South Coast Mainland Stations','Haida Gwaii Stations','Vancouver Island Stations',
-#                 'Russell Creek Substation','Mt Cain Substation','Calvert Watershed Name','Other Station Name']
 # columns to search for station names
 station_cols = ['Central_Coast_Stations','South_Coast_Mainland_Stations','Haida_Gwaii_Stations','Vancouver_Island_Stations',
                 'Russell_Creek_Substation','Calvert_Watershed_Name','Other_Station_Name']
@@ -74,12 +47,17 @@ station_cols = ['Central_Coast_Stations','South_Coast_Mainland_Stations','Haida_
 # get unique stations names to populate dropdown options
 station_names = np.unique(df.loc[:, station_cols].astype(str).values)
 
+# Update database button
+if st.button('Update Visit Form Database'):
+    exec(open('update-stn-visit-gsheet.py').read())
+
 ## APP ELEMENTS FOR USER TO SELECT STATION AND NUMBER OF TRIPS
 station = st.selectbox('Select station', station_names, index=None)
 num_entries = st.number_input('Select number of recent entries to include', value=5)
 # img_flag = st.checkbox('Display images on page (will increase processing time)')
 
 ## MAIN SCRIPT
+
 if st.button('Get Summary Table'):
 #     check inputs
     if station is None:
@@ -89,22 +67,6 @@ if st.button('Get Summary Table'):
     else:
         # get entries for target station
         df_station = df.loc[np.where(np.any(df == station, axis=1))].copy()
-
-        # # select columns to keep in table and define new column names for each (CSV)
-        # cols2keep = ['Job Start Time', 'User',
-        #        'What jobs are being completed? : Snow Course',
-        #        'What jobs are being completed? : Drone Survey',
-        #        'What jobs are being completed? : CF',
-        #        'What jobs are being completed? : Sensor Change',
-        #        'What jobs are being completed? : Precip Gage',
-        #        'What jobs are being completed? : Lys Calibration',
-        #        'What jobs are being completed? : Tipping Bucket Calibration',
-        #        'What jobs are being completed? : Data Download',
-        #        'What jobs are being completed? : General Maintenance',
-        #        'Sensor Change : Type of Sensor',
-        #        'Sensor Change : Why is the sensor being changed',
-        #        'Sensor Change : Additional Notes',
-        #        'General Notes']
 
         # select columns to keep in table and define new column names for each (CSV)
         cols2keep = ['Job_Start_Time', 'User',
@@ -157,7 +119,6 @@ if st.button('Get Summary Table'):
         df_table['general_notes'] = df_table['general_notes'].str.replace('\n', '<br>', regex=False)
         df_table['sens_notes'] = df_table['sens_notes'].str.replace('\n', '<br>', regex=False)
 
-
         # now that each entry has links for all photos, drop the duplicates
         df_table = df_table.drop_duplicates(subset='date')
 
@@ -180,8 +141,3 @@ if st.button('Get Summary Table'):
 
         # print html table to app page
         components.html(df_table.to_html(index=False, escape=False, justify='left'), height=3000)
-
-    # # display photos on page (optional)
-    # if img_flag:
-    #     st.write(df_pic[['date', 'photo', 'photo_note']].to_html(index=False, escape=False, justify='left'), unsafe_allow_html=True)
-

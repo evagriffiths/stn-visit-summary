@@ -1,7 +1,8 @@
 secrets.toml
 update_config.py
+config.py
+temp*
 form_fields.xlsx
 *.html
 *.csv
-config.py
 *.ipynb
