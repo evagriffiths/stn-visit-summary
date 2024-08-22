@@ -5,6 +5,7 @@ from datetime import date
 import gspread
 from google.oauth2.service_account import Credentials
 import streamlit.components.v1 as components
+import gc
 
 st.set_page_config(
     layout="wide"
@@ -169,6 +170,8 @@ if st.button('Get Summary Table'):
         # print html table to app page
         components.html(df_merged.to_html(index=False, escape=False, justify='left'), height=3000)
 
-        # finish by clearing cache
+        # finish by clearing cache and freeing up memory
+        del df, df_station, df_table, df_merge_list, df_merged
+        gc.collect()
         st.cache_data.clear()
         st.cache_resource.clear()
