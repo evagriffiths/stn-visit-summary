@@ -1,8 +1,10 @@
 __pycache__
+*venv*
+temp*
+*~
 secrets.toml
 update_config.py
 config.py
-temp*
 form_fields.xlsx
 *.html
 *.csv
