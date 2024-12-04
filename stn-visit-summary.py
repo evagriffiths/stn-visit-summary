@@ -35,7 +35,7 @@ credentials = {
 
 # connect to google sheets
 gspread_client = gspread.service_account_from_dict(credentials)
-sh = gspread_client.open("Weather Station Visit Form Test")
+sh = gspread_client.open("Weather Station Visit Form")
 
 # pull wx station visit sheet and put in dataframe
 worksheet = sh.worksheet('Weather Station Visit MERGED')

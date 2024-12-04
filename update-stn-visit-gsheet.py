@@ -23,7 +23,7 @@ if np.isin('Weather Station Visit MERGED', ws_names):
 else:
     merged_exists = False
 
-#  sort worksheets by version (newest first)
+# sort worksheets by version (newest first)
 ws_names_sorted = natsorted(ws_names, reverse=True)
 
 # let's use the most recent sheet to begin the merge
@@ -37,7 +37,6 @@ for ws_name in ws_names_sorted[1:]:
     df_ws = pd.DataFrame(ws.get_all_records())
     # get fieldnames
     fld_ws = df_ws.columns
-    # pdb.set_trace()
     # apply fieldname corrections
     fld_ws = [x.replace('Course_Job.', 'Course.') for x in fld_ws]
     fld_ws = [x.replace('Enter_Snow_Core_Data.', 'Add_Snow_Core.') for x in fld_ws]
@@ -57,21 +56,33 @@ for ws_name in ws_names_sorted[1:]:
 # merge all sheets together
 df_merged = pd.concat(df_merge_list, ignore_index=True)
 
-# replace NaN with empty so that it can be sent to google sheets (JSON compliant)
-df_merged.fillna('',inplace=True) # change any nulls for blank space
+# Ensure 'Job_Start_Time' column is in datetime format
+df_merged['Job_Start_Time'] = pd.to_datetime(df_merged['Job_Start_Time'], errors='coerce')
 
-# get fieldnames of merged df
-fld_merged = df_merged.columns
+# Sort the merged dataframe by 'Job_Start_Time' in ascending order
+df_merged_sorted = df_merged.sort_values(by='Job_Start_Time', ascending=False)
+
+# Convert 'Job_Start_Time' to string to make it JSON serializable
+df_merged_sorted['Job_Start_Time'] = df_merged_sorted['Job_Start_Time'].dt.strftime('%Y-%m-%d %H:%M:%S')
+
+# replace NaN with empty so that it can be sent to google sheets (JSON compliant)
+df_merged_sorted.fillna('', inplace=True)
+
+# get fieldnames of sorted merged df
+fld_merged_sorted = df_merged_sorted.columns
 
 # Create merged sheet if it doesn't already exist
 if merged_exists is False:
-    # create merged sheet
-    ws_merged = sh.add_worksheet(title="Weather Station Visit MERGED", rows=1000, cols=100)
+    # create merged sheet without specifying rows and cols
+    ws_merged = sh.add_worksheet(title="Weather Station Visit MERGED")
     # set headers
     index = 1
-    ws_merged.insert_row(fld_merged.tolist(), index)
+    ws_merged.insert_row(fld_merged_sorted.tolist(), index)
 else:
     ws_merged = sh.worksheet('Weather Station Visit MERGED')
 
-# update merged worksheet using merged df
-ws_merged.update([df_merged.columns.values.tolist()] + df_merged.values.tolist())
+# update merged worksheet using sorted merged df
+ws_merged.update([df_merged_sorted.columns.values.tolist()] + df_merged_sorted.values.tolist())
+
+# Print confirmation message
+print(f'Google Sheet "Weather Station Visit Form" has been updated')
