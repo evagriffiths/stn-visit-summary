@@ -9,3 +9,5 @@ form_fields.xlsx
 *.html
 *.csv
 *.ipynb
+*ecosystem*
+.streamlit
