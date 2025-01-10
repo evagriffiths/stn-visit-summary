@@ -11,3 +11,5 @@ form_fields.xlsx
 *.ipynb
 *ecosystem*
 .streamlit
+check_field*
+get_field*

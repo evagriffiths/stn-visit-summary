@@ -73,16 +73,21 @@ fld_merged_sorted = df_merged_sorted.columns
 
 # Create merged sheet if it doesn't already exist
 if merged_exists is False:
-    # create merged sheet without specifying rows and cols
-    ws_merged = sh.add_worksheet(title="Weather Station Visit MERGED")
-    # set headers
+    # Get the number of rows and columns from the merged dataframe
+    rows, cols = df_merged_sorted.shape
+    
+    # Add 1 to rows for the header row
+    ws_merged = sh.add_worksheet(title="Weather Station Visit MERGED", rows=str(rows + 1), cols=str(cols), index=0)  # Insert at the first (leftmost) position
+    
+    # Insert headers at the top (row 1)
     index = 1
     ws_merged.insert_row(fld_merged_sorted.tolist(), index)
 else:
     ws_merged = sh.worksheet('Weather Station Visit MERGED')
 
-# update merged worksheet using sorted merged df
+# Update the merged worksheet with the data
 ws_merged.update([df_merged_sorted.columns.values.tolist()] + df_merged_sorted.values.tolist())
+
 
 # Print confirmation message
 print(f'Google Sheet "Weather Station Visit Form" has been updated')
