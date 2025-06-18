@@ -62,6 +62,8 @@ num_entries = st.number_input('Select number of recent entries to include', valu
 
 ## MAIN SCRIPT
 
+russell_flag = st.checkbox('Give Me Russell!')
+
 if st.button('Get Summary Table'):
 #     check inputs
     if station_list is None:
@@ -70,6 +72,14 @@ if st.button('Get Summary Table'):
         st.write(':red[Please select a sensible number.]')
     else:
         df_merge_list = []
+        
+        # If Russell checkbox selected, ovrrride station names with Russell
+        if russell_flag:
+            station_list = [
+                'Steph 1', 'Steph 2', 'Steph 3', 'Steph 4', 'Steph 5',
+                'Steph 6', 'Steph 7', 'Steph 8', 'Upper Russell','Russell Main'
+            ]
+        
         for station in station_list:
             # get entries for target station
             df_station = df.loc[np.where(np.any(df == station, axis=1))].copy()
